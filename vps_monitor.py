@@ -110,9 +110,9 @@ def send_email(subject, body_html):
     for host, port in [("smtp.qq.com", 465), ("smtp.qq.com", 587)]:
         try:
             if port == 465:
-                s = smtplib.SMTP_SSL(host, port, timeout=15)
+                s = smtplib.SMTP_SSL(host, port, timeout=8)
             else:
-                s = smtplib.SMTP(host, port, timeout=15)
+                s = smtplib.SMTP(host, port, timeout=8)
                 s.starttls()
             s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, [NOTIFY_TO], msg.as_string())
@@ -132,7 +132,7 @@ def scan_legacyvps():
     seen = set()
     try:
         while True:
-            r = fetch(f"https://legacyvps.com/scanidc/api/stats?page={page}&page_size=200", timeout=15)
+            r = fetch(f"https://legacyvps.com/scanidc/api/stats?page={page}&page_size=200", timeout=8)
             data = r.json()
             page_data = data.get("data", [])
             if not page_data:
@@ -288,10 +288,6 @@ def main():
     print(f"CN2/GIA VPS Monitor — {now:%Y-%m-%d %H:%M} CST")
     print(f"Sources: legacyvps (16 providers) + teddysun + PIDs | Budget ${BUDGET[0]}-{BUDGET[1]}/yr")
     print(f"{'='*55}")
-    # === TEST EMAIL (remove after confirmed working) ===
-    send_email("CN2 VPS Monitor Test", "<html><body><h2>Test Email</h2><p>If you see this, QQ SMTP is working!</p><p>Time: " + now.strftime("%Y-%m-%d %H:%M") + " CST</p></body></html>")
-    # === END TEST ===
-
 
     all_items = []
     with ThreadPoolExecutor(max_workers=3) as ex:
