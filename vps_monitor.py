@@ -288,6 +288,10 @@ def main():
     print(f"CN2/GIA VPS Monitor — {now:%Y-%m-%d %H:%M} CST")
     print(f"Sources: legacyvps (16 providers) + teddysun + PIDs | Budget ${BUDGET[0]}-{BUDGET[1]}/yr")
     print(f"{'='*55}")
+    # === TEST EMAIL (remove after confirmed working) ===
+    send_email("CN2 VPS Monitor Test", "<html><body><h2>Test Email</h2><p>If you see this, QQ SMTP is working!</p><p>Time: " + now.strftime("%Y-%m-%d %H:%M") + " CST</p></body></html>")
+    # === END TEST ===
+
 
     all_items = []
     with ThreadPoolExecutor(max_workers=3) as ex:
