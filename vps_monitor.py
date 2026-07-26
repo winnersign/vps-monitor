@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CN2/GIA 优化线路 VPS 库存监控
-数据源: legacyvps.com API (16+ 商家, 700+ 套餐) + teddysun + 直接 PID
-预算: $15-50/年 | 补货发 QQ 邮件 | 设计用于 GitHub Actions
+CN2/GIA optimized route VPS stock monitor
+Data: legacyvps.com API (16 providers, 700+ plans) + teddysun + direct PIDs
+Budget: $15-50/year | Restock alerts via QQ email | GitHub Actions
 """
 
 import requests, json, os, re, sys, time, smtplib
@@ -20,12 +20,12 @@ TIMEOUT = 12
 CNTZ = timezone(timedelta(hours=8))
 BUDGET = (15, 50)
 
-# CN2/GIA/优化线路 关键词（仅精确匹配，不包含地区名称）
+# CN2/GIA/optimized route keywords
 CN2_KW = [
     "cn2 gia", "cn2gia", "cn2-gia", "cn2 gt",
     "9929", "cmin2", "cmi",
-    "优化线路", "三网优化", "回程优化", "直连", "精品线路",
-    "softbank", "软银", "iij",
+    "optimized route", "optimized line", "direct route",
+    "softbank", "iij",
     "dc6 cn2", "dc9 cn2",
 ]
 
@@ -46,11 +46,16 @@ def is_cn2(name, tags=""):
     for kw in CN2_KW:
         if kw in t:
             return True
-    # 额外：如果同时有 "cn2" 或 "gia" 且不是 "cn2 gt"，也算
+    # Extra: if both "cn2" or "gia" appears and not in common non-optimized contexts
     has_cn2 = "cn2" in t and "cn2 gt" not in t
     has_gia = "gia" in t and "gia-e" not in t
     if has_cn2 or has_gia:
         return True
+    # Also check Chinese tags from legacyvps
+    chinese_kw = ["优化线路", "三网优化", "回程优化", "直连", "精品线路", "软银"]
+    for ck in chinese_kw:
+        if ck in t:
+            return True
     return False
 
 
@@ -270,8 +275,8 @@ def main():
     now = datetime.now(CNTZ)
     t0 = time.time()
     print(f"\n{'='*55}")
-    print(f"CN2/GIA VPS 监控 — {now:%Y-%m-%d %H:%M} CST")
-    print(f"数据: legacyvps(16商家) + teddysun + PID | 预算 ${BUDGET[0]}-{BUDGET[1]}/年")
+    print(f"CN2/GIA VPS Monitor — {now:%Y-%m-%d %H:%M} CST")
+    print(f"Sources: legacyvps (16 providers) + teddysun + PIDs | Budget ${BUDGET[0]}-{BUDGET[1]}/yr")
     print(f"{'='*55}")
 
     all_items = []
@@ -285,7 +290,7 @@ def main():
             src = futs[f]
             try:
                 r = f.result()
-                print(f"  [{src}] {len(r)} 个 CN2 套餐")
+                print(f"  [{src}] {len(r)} CN2 plans")
                 all_items.extend(r)
             except Exception as e:
                 print(f"  [{src}] 失败: {e}")
@@ -350,12 +355,12 @@ def main():
 
     # ======== 报告 ========
     L = []
-    L.append(f"## CN2/GIA VPS 库存 — {now:%m-%d %H:%M} CST")
-    L.append(f"数据源: legacyvps(16商家) + teddysun + PID | 预算 ${BUDGET[0]}-{BUDGET[1]}/年 | {elapsed:.1f}s")
+    L.append(f"## CN2/GIA VPS — {now:%m-%d %H:%M} CST")
+    L.append(f"Sources: legacyvps(16 providers) + teddysun + PIDs | Budget ${BUDGET[0]}-{BUDGET[1]}/yr | {elapsed:.1f}s")
     L.append("")
 
     if restocks:
-        L.append(f"### 🔔 补货! ({len(restocks)} 个)")
+        L.append(f"### NEW RESTOCKS! ({len(restocks)})")
         for i in restocks:
             L.append(f"- ⚡ **[{i['merchant']}]** {i['plan']} — {i.get('price','?')}")
             if i.get("url"):
@@ -365,42 +370,42 @@ def main():
         L.append("")
 
     if hot:
-        L.append(f"### 🟢 预算内有货 ({len(hot)} 个)")
+        L.append(f"### IN BUDGET ({len(hot)} plans)")
         for i in hot:
             L.append(f"- [{i['merchant']}] {i['plan']} — {i.get('price','?')}")
         L.append("")
 
-    # 商家汇总
-    L.append(f"### 📊 商家覆盖 ({len(merchants)} 家)")
+    # Merchant summary
+    L.append(f"### COVERAGE ({len(merchants)} providers)")
     for m in sorted(merchants.keys()):
         s = merchants[m]
-        L.append(f"- {m}: {s['total']}个套餐, {s['in_stock']}有货, {s['in_budget']}预算内")
+        L.append(f"- {m}: {s['total']}plans, {s['in_stock']}in-stock, {s['in_budget']}in-budget")
     L.append("")
 
     if watching:
-        L.append(f"### 🟡 预算内缺货 ({len(watching)} 个)")
+        L.append(f"### WATCHING ({len(watching)} out-of-stock)")
         for i in watching[:15]:
             L.append(f"- [{i['merchant']}] {i['plan']} — {i.get('price','?')}")
         if len(watching) > 15:
-            L.append(f"  ...另外 {len(watching)-15} 个")
+            L.append(f"  ...plus {len(watching)-15} more")
         L.append("")
 
     if not hot and not restocks:
-        L.append("😔 当前无预算内 CN2/GIA 有货")
-        L.append(f"   监控 {len(watching)} 个套餐等待补货")
+        L.append("No budget matches right now")
+        L.append(f"   Watching {len(watching)} plans for restock")
         if expensive:
             try:
                 cheapest = min([i for i in expensive if i.get("price")], key=lambda x: float(re.findall(r'[\d.]+', x.get("price","999999").replace(",",""))[0]) if re.findall(r'[\d.]+', x.get("price","999999").replace(",","")) else 999999)
-                L.append(f"   最便宜有货 CN2: [{cheapest['merchant']}] {cheapest['plan']} — {cheapest.get('price','?')}")
+                L.append(f"   Cheapest CN2 in stock: [{cheapest['merchant']}] {cheapest['plan']} — {cheapest.get('price','?')}")
             except:
                 pass
         L.append("")
 
     L.append("---")
-    L.append(f"下次: ~1h | {now:%m-%d %H:%M}")
+    L.append(f"Next: ~1hr | {now:%m-%d %H:%M}")
 
     text = "\n".join(L)
     with open(RESULT_FILE, "w", encoding="utf-8") as f:
         f.write(text)
 
-    print(f"Total:{len(all_items)} | InStock:{len(in_stock)} | Budget:{len(hot)} | Watching:{len(watching)} | Restocks:{len(restocks)} | {elapsed:.1f}s")
+    print(f"Total:{len(all_items)} 
