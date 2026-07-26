@@ -32,4 +32,5 @@ jobs:
           git config user.email "bot@vps-monitor.local"
           if [ -f vps_monitor_state.json ]; then
             git add vps_monitor_state.json vps_monitor_result.txt
-            git diff --cached --quiet || (git commit -m "Status update $(TZ=Asia/Shangh
+            git diff --cached --quiet || (git commit -m "Status $(TZ=Asia/Shanghai date +%m-%d_%H:%M)" && git push)
+          fi
