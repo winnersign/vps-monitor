@@ -408,4 +408,17 @@ def main():
     with open(RESULT_FILE, "w", encoding="utf-8") as f:
         f.write(text)
 
-    print(f"Total:{len(all_items)} 
+    total = len(all_items)
+    instock = len(in_stock)
+    budget = len(hot)
+    watching_ct = len(watching)
+    restock_ct = len(restocks)
+    print("Total:{} InStock:{} Budget:{} Watching:{} R:{} {:.1f}s".format(total, instock, budget, watching_ct, restock_ct, elapsed))
+    print(text)
+    
+    return text, notify
+
+
+if __name__ == "__main__":
+    text, notify = main()
+    sys.exit(0)
