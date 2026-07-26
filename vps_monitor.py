@@ -29,12 +29,16 @@ CN2_KW = [
     "dc6 cn2", "dc9 cn2",
 ]
 
-# QQ 邮箱
+# QQ Mail SMTP
 SMTP_HOST = "smtp.qq.com"
 SMTP_PORT = 465
 SMTP_USER = os.environ.get("QQMAIL_USER", "")
 SMTP_PASS = os.environ.get("QQMAIL_PASS", "")
 NOTIFY_TO = os.environ.get("QQMAIL_TO", SMTP_USER)
+
+# Try alternate port if 465 fails
+SMTP_FALLBACK_HOST = "smtp.qq.com"
+SMTP_FALLBACK_PORT = 587
 
 
 def fetch(url, timeout=TIMEOUT, **kw):
@@ -92,26 +96,32 @@ def save_state(s):
 
 
 def send_email(subject, body_html):
+    """Send email via QQ SMTP. Tries SSL(465) then STARTTLS(587)."""
     if not SMTP_USER or not SMTP_PASS:
-        print("[EMAIL] 未配置，跳过")
+        print("[EMAIL] Not configured, skipping")
         return False
     msg = MIMEMultipart("alternative")
     msg["From"] = SMTP_USER
     msg["To"] = NOTIFY_TO
     msg["Subject"] = subject
     msg.attach(MIMEText(body_html, "html", "utf-8"))
-    try:
-        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+
+    # Try SSL port 465 first, then STARTTLS 587
+    for host, port in [("smtp.qq.com", 465), ("smtp.qq.com", 587)]:
+        try:
+            if port == 465:
+                s = smtplib.SMTP_SSL(host, port, timeout=15)
+            else:
+                s = smtplib.SMTP(host, port, timeout=15)
+                s.starttls()
             s.login(SMTP_USER, SMTP_PASS)
             s.sendmail(SMTP_USER, [NOTIFY_TO], msg.as_string())
-        print(f"[EMAIL] 已发送至 {NOTIFY_TO}")
-        return True
-    except Exception as e:
-        print(f"[EMAIL] 失败: {e}")
-        return False
-
-
-# ======================== 来源 1: legacyvps.com API（主力） ========================
+            s.quit()
+            print("[EMAIL] Sent to {} via {}:{}".format(NOTIFY_TO, host, port))
+            return True
+        except Exception as e:
+            print("[EMAIL] {}:{} failed: {}".format(host, port, e))
+    return False
 
 def scan_legacyvps():
     """
@@ -415,10 +425,4 @@ def main():
     restock_ct = len(restocks)
     print("Total:{} InStock:{} Budget:{} Watching:{} R:{} {:.1f}s".format(total, instock, budget, watching_ct, restock_ct, elapsed))
     print(text)
-    
-    return text, notify
-
-
-if __name__ == "__main__":
-    text, notify = main()
-    sys.exit(0)
+  
