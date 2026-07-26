@@ -1,0 +1,20 @@
+## CN2/GIA VPS — 07-27 01:06 CST
+Sources: legacyvps(16 providers) + teddysun + PIDs | Budget $15-50/yr | 1.2s
+
+### IN BUDGET (3 plans)
+- [BandwagonHost] MINIBOX-10-512 — $29.00
+- [BandwagonHost] BIGGERBOX-20-1024 — $37.00
+- [BandwagonHost] The Amsterdam Plan — $39.00
+
+### COVERAGE (4 providers)
+- BWH: 5plans, 1in-stock, 0in-budget
+- BandwagonHost: 4plans, 4in-stock, 3in-budget
+- DMIT: 2plans, 0in-stock, 0in-budget
+- ZgoCloud: 1plans, 0in-stock, 0in-budget
+
+### WATCHING (2 out-of-stock)
+- [DMIT] LAX.AN4.Pro.MALIBU — $49.9
+- [ZgoCloud] Tokyo BGP SP - 1G — $45.00
+
+---
+Next: ~1hr | 07-27 01:06

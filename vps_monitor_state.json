@@ -1,0 +1,23 @@
+{
+  "stocks": {
+    "BWH|KVM V5 CN2 GIA 40G DC6": "out_of_stock",
+    "BWH|KVM V5 CN2 GIA 20G DC6": "out_of_stock",
+    "BWH|CN2 GIA-E 10G LIMITED": "out_of_stock",
+    "BWH|CN2 GIA-E 20G LIMITED": "out_of_stock",
+    "BWH|CN2 GIA SPECIAL DC9": "in_stock",
+    "DMIT|LAX.AN4.Pro.MALIBU": "out_of_stock",
+    "BandwagonHost|SPECIAL 20G KVM PROMO V5 - CN2 GIA ECOMMERCE": "in_stock",
+    "BandwagonHost|MINIBOX-10-512": "in_stock",
+    "BandwagonHost|BIGGERBOX-20-1024": "in_stock",
+    "DMIT|LAX.AN4.Pro.TINY": "out_of_stock",
+    "BandwagonHost|The Amsterdam Plan": "in_stock",
+    "ZgoCloud|Tokyo BGP SP - 1G": "out_of_stock"
+  },
+  "in_stock": [
+    "BandwagonHost|The Amsterdam Plan",
+    "BandwagonHost|MINIBOX-10-512",
+    "BandwagonHost|BIGGERBOX-20-1024"
+  ],
+  "last": "2026-07-27T01:06:28.454739+08:00",
+  "initialized": true
+}
