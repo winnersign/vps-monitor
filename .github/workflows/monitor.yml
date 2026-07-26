@@ -1,0 +1,39 @@
+name: CN2 VPS 库存监控
+
+on:
+  schedule:
+    # 每小时执行一次 (UTC 时间，北京时间需要 +8)
+    # 每小时的第5分钟，避免整点高峰
+    - cron: '5 * * * *'
+  workflow_dispatch:  # 允许手动触发
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: pip install requests beautifulsoup4 lxml
+
+      - name: 运行 VPS 库存监控
+        env:
+          QQMAIL_USER: ${{ secrets.QQMAIL_USER }}
+          QQMAIL_PASS: ${{ secrets.QQMAIL_PASS }}
+          QQMAIL_TO: ${{ secrets.QQMAIL_TO }}
+        run: python vps_monitor.py
+
+      - name: 提交状态更新 (Git 持久化)
+        if: always()
+        run: |
+          git config user.name "VPS Monitor Bot"
+          git config user.email "bot@vps-monitor.local"
+          git add vps_monitor_state.json vps_monitor_result.txt 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "📊 库存更新 $(TZ='Asia/Shanghai' date +'%m-%d %H:%M')"
+          git push
